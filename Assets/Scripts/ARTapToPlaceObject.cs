@@ -12,6 +12,7 @@ public class ARTapToPlaceObjects : MonoBehaviour
 {
     [Header("AR Placement")]
     private GameObject previewObject;
+    [SerializeField] private Material previewGhostMaterial;
 
     [Header("Furniture Prefabs")]
     [SerializeField] private List<GameObject> furniturePrefabs = new List<GameObject>();
@@ -143,6 +144,21 @@ public class ARTapToPlaceObjects : MonoBehaviour
         {
             col.enabled = false;
         }
+        // Apply preview material
+        if (previewGhostMaterial != null)
+        {
+            Renderer[] renderers = previewObject.GetComponentsInChildren<Renderer>();
+
+            foreach (Renderer rend in renderers)
+            {
+                Material[] mats = new Material[rend.materials.Length];
+
+                for (int i = 0; i < mats.Length; i++)
+                    mats[i] = previewGhostMaterial;
+
+                rend.materials = mats;
+            }
+        }
     }
 
     private void PlaceSelectedFurniture(InputAction.CallbackContext context)
@@ -160,6 +176,8 @@ public class ARTapToPlaceObjects : MonoBehaviour
         );
 
         placedObjects.Add(placedObject);
+
+        ResetFurnitureSelection();
     }
 
     public void SelectFurnitureByIndex(int index)
@@ -193,6 +211,23 @@ public class ARTapToPlaceObjects : MonoBehaviour
         if (furnitureSelectionPanel != null)
             furnitureSelectionPanel.SetActive(false);
     }
+
+    public void ResetFurnitureSelection()
+    {
+        selectedFurniturePrefab = null;
+
+        if (previewObject != null)
+        {
+            Destroy(previewObject);
+            previewObject = null;
+        }
+
+        if (selectedFurnitureButtonText != null)
+        {
+            selectedFurnitureButtonText.text = "Select Furniture";
+        }
+    }
+
     public void DeleteLastPlacedObject()
     {
         if (placedObjects.Count == 0)
