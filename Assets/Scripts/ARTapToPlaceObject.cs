@@ -12,44 +12,66 @@ public class ARTapToPlaceObject : MonoBehaviour
 
     public GameObject objectToPlace;
     private Pose PlacementPose;
-    private ARRaycastManager aRRaycastManager;
+    private ARRaycastManager arRaycastManager;
     private bool placementPoseIsValid = false;
 
     private Camera arCamera;
 
     private PlayerInput playerInput;
     private InputAction touchAction;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        aRRaycastManager = UnityEngine.Object.FindFirstObjectByType<ARRaycastManager>();   
-        arCamera = Camera.main;
-    }
-
+    private static readonly List<ARRaycastHit> hits = new List<ARRaycastHit>();
     void Awake()
     {
+        arRaycastManager = UnityEngine.Object.FindFirstObjectByType<ARRaycastManager>();   
+        arCamera = Camera.main;
         playerInput = GetComponent<PlayerInput>();
-        touchAction = playerInput.actions.FindAction("SingleTouchClick");
+        if (playerInput != null && playerInput.actions != null)
+        {
+            touchAction = playerInput.actions.FindAction("SingleTouchClick");
+        }
+
+        if (placementIndicator == null)
+            Debug.LogError("placementIndicator is not assigned.");
+
+        if (objectToPlace == null)
+            Debug.LogError("objectToPlace is not assigned.");
+
+        if (arRaycastManager == null)
+            Debug.LogError("No ARRaycastManager found in the scene.");
+
+        if (arCamera == null)
+            Debug.LogError("Camera.main is null. Make sure your AR Camera is enabled and tagged MainCamera.");
+
+        if (playerInput == null)
+            Debug.LogError("No PlayerInput component found on this GameObject.");
+
+        if (touchAction == null)
+            Debug.LogError("Input action 'SingleTouchClick' was not found in the PlayerInput actions asset.");
     }
+
 
     void OnEnable()
     {
+        if (touchAction != null)
         touchAction.started += PlaceObject;
     }
 
     void OnDisable()
     {
+        if (touchAction != null)
         touchAction.started -= PlaceObject;
+    }
+
+    private void PlaceObject(InputAction.CallbackContext context)
+    {
+        if (placementPoseIsValid && objectToPlace != null)
+            Instantiate(objectToPlace, PlacementPose.position, PlacementPose.rotation);
     }
 
     private void UpdatePlacementPose()
     {
         Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
-        var hits = new List<ARRaycastHit>();
-        aRRaycastManager.Raycast(screenCenter, hits, TrackableType.PlaneWithinPolygon);
-
-        placementPoseIsValid = hits.Count > 0;
+        placementPoseIsValid = arRaycastManager.Raycast(screenCenter, hits, TrackableType.PlaneWithinPolygon);
         if (placementPoseIsValid) 
         {
             PlacementPose = hits[0].pose;
@@ -69,13 +91,6 @@ public class ARTapToPlaceObject : MonoBehaviour
         }
     }
 
-    private void PlaceObject(InputAction.CallbackContext context)
-    {
-        if (placementPoseIsValid)
-            Instantiate(objectToPlace, PlacementPose.position, PlacementPose.rotation);
-    }
-
-    // Update is called once per frame
     void Update()
     {
         UpdatePlacementPose();
