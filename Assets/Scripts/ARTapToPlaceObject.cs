@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 using System;
 using TMPro;
 
@@ -113,8 +114,23 @@ public class ARTapToPlaceObjects : MonoBehaviour
         }
     }
 
+    // Prevent placement when interacting with UI
+    private bool IsTouchOverUI()
+    {
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = Touchscreen.current.primaryTouch.position.ReadValue();
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+
+        return results.Count > 0;
+    }
+    
     private void PlaceSelectedFurniture(InputAction.CallbackContext context)
     {
+        if (IsTouchOverUI())
+            return;
+
         if (!placementPoseIsValid || selectedFurniturePrefab == null)
             return;
 
