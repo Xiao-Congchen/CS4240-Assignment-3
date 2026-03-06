@@ -14,6 +14,9 @@ public class ARTapToPlaceObjects : MonoBehaviour
     [Header("Furniture Prefabs")]
     [SerializeField] private List<GameObject> furniturePrefabs = new List<GameObject>();
 
+    [Header("UI")]
+    [SerializeField] private GameObject furnitureSelectionPanel;
+
     private GameObject selectedFurniturePrefab;
 
     private Pose placementPose;
@@ -133,8 +136,21 @@ public class ARTapToPlaceObjects : MonoBehaviour
 
         selectedFurniturePrefab = furniturePrefabs[index];
         Debug.Log("Selected furniture: " + selectedFurniturePrefab.name);
+
+        CloseFurnitureMenu();
     }
 
+    public void OpenFurnitureMenu()
+    {
+        if (furnitureSelectionPanel != null)
+            furnitureSelectionPanel.SetActive(true);
+    }
+
+    public void CloseFurnitureMenu()
+    {
+        if (furnitureSelectionPanel != null)
+            furnitureSelectionPanel.SetActive(false);
+    }
     public void DeleteLastPlacedObject()
     {
         if (placedObjects.Count == 0)
