@@ -6,24 +6,33 @@ using UnityEngine.XR.ARSubsystems;
 using UnityEngine.InputSystem;
 using System;
 
-public class ARTapToPlaceObject : MonoBehaviour
+public class ARTapToPlaceObjects : MonoBehaviour
 {
-    public GameObject placementIndicator;
+    [Header("AR Placement")]
+    [SerializeField] private GameObject placementIndicator;
 
-    public GameObject objectToPlace;
-    private Pose PlacementPose;
+    [Header("Furniture Prefabs")]
+    [SerializeField] private List<GameObject> furniturePrefabs = new List<GameObject>();
+
+    private GameObject selectedFurniturePrefab;
+
+    private Pose placementPose;
+    private bool placementPoseIsValid;
+
     private ARRaycastManager arRaycastManager;
-    private bool placementPoseIsValid = false;
-
     private Camera arCamera;
 
     private PlayerInput playerInput;
     private InputAction touchAction;
-    private static readonly List<ARRaycastHit> hits = new List<ARRaycastHit>();
-    void Awake()
+
+    private static readonly List<ARRaycastHit> arHits = new List<ARRaycastHit>();
+    private readonly List<GameObject> placedObjects = new List<GameObject>();
+
+    private void Awake()
     {
-        arRaycastManager = UnityEngine.Object.FindFirstObjectByType<ARRaycastManager>();   
+        arRaycastManager = FindFirstObjectByType<ARRaycastManager>();
         arCamera = Camera.main;
+
         playerInput = GetComponent<PlayerInput>();
         if (playerInput != null && playerInput.actions != null)
         {
@@ -31,69 +40,121 @@ public class ARTapToPlaceObject : MonoBehaviour
         }
 
         if (placementIndicator == null)
-            Debug.LogError("placementIndicator is not assigned.");
-
-        if (objectToPlace == null)
-            Debug.LogError("objectToPlace is not assigned.");
+            Debug.LogError("Placement indicator is not assigned.");
 
         if (arRaycastManager == null)
-            Debug.LogError("No ARRaycastManager found in the scene.");
+            Debug.LogError("ARRaycastManager not found in scene.");
 
         if (arCamera == null)
-            Debug.LogError("Camera.main is null. Make sure your AR Camera is enabled and tagged MainCamera.");
+            Debug.LogError("AR Camera not found. Make sure the AR Camera is tagged MainCamera.");
 
         if (playerInput == null)
-            Debug.LogError("No PlayerInput component found on this GameObject.");
+            Debug.LogError("PlayerInput not found on this GameObject.");
 
         if (touchAction == null)
-            Debug.LogError("Input action 'SingleTouchClick' was not found in the PlayerInput actions asset.");
+            Debug.LogError("Input action 'SingleTouchClick' not found.");
     }
 
-
-    void OnEnable()
+    private void OnEnable()
     {
         if (touchAction != null)
-        touchAction.started += PlaceObject;
+            touchAction.started += PlaceSelectedFurniture;
     }
 
-    void OnDisable()
+    private void OnDisable()
     {
         if (touchAction != null)
-        touchAction.started -= PlaceObject;
+            touchAction.started -= PlaceSelectedFurniture;
     }
 
-    private void PlaceObject(InputAction.CallbackContext context)
+    private void Update()
     {
-        if (placementPoseIsValid && objectToPlace != null)
-            Instantiate(objectToPlace, PlacementPose.position, PlacementPose.rotation);
+        UpdatePlacementPose();
+        UpdatePlacementIndicator();
     }
 
     private void UpdatePlacementPose()
     {
+        if (arRaycastManager == null || arCamera == null)
+            return;
+
         Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
-        placementPoseIsValid = arRaycastManager.Raycast(screenCenter, hits, TrackableType.PlaneWithinPolygon);
-        if (placementPoseIsValid) 
+
+        placementPoseIsValid = arRaycastManager.Raycast(
+            screenCenter,
+            arHits,
+            TrackableType.PlaneWithinPolygon
+        );
+
+        if (placementPoseIsValid)
         {
-            PlacementPose = hits[0].pose;
+            placementPose = arHits[0].pose;
         }
     }
 
     private void UpdatePlacementIndicator()
     {
-        if (placementPoseIsValid)
+        if (placementIndicator == null)
+            return;
+
+        bool shouldShow = placementPoseIsValid && selectedFurniturePrefab != null;
+        placementIndicator.SetActive(shouldShow);
+
+        if (shouldShow)
         {
-            placementIndicator.SetActive(true);
-            placementIndicator.transform.SetPositionAndRotation(PlacementPose.position, PlacementPose.rotation);
-        }
-        else 
-        {
-            placementIndicator.SetActive(false);
+            placementIndicator.transform.SetPositionAndRotation(
+                placementPose.position,
+                placementPose.rotation
+            );
         }
     }
 
-    void Update()
+    private void PlaceSelectedFurniture(InputAction.CallbackContext context)
     {
-        UpdatePlacementPose();
-        UpdatePlacementIndicator();
+        if (!placementPoseIsValid || selectedFurniturePrefab == null)
+            return;
+
+        GameObject placedObject = Instantiate(
+            selectedFurniturePrefab,
+            placementPose.position,
+            placementPose.rotation
+        );
+
+        placedObjects.Add(placedObject);
+    }
+
+    public void SelectFurnitureByIndex(int index)
+    {
+        if (index < 0 || index >= furniturePrefabs.Count)
+        {
+            Debug.LogWarning("Invalid furniture index selected.");
+            return;
+        }
+
+        selectedFurniturePrefab = furniturePrefabs[index];
+        Debug.Log("Selected furniture: " + selectedFurniturePrefab.name);
+    }
+
+    public void DeleteLastPlacedObject()
+    {
+        if (placedObjects.Count == 0)
+            return;
+
+        GameObject lastObject = placedObjects[placedObjects.Count - 1];
+        placedObjects.RemoveAt(placedObjects.Count - 1);
+
+        if (lastObject != null)
+            Destroy(lastObject);
+    }
+
+    public void ClearAllPlacedObjects()
+    {
+        foreach (GameObject obj in placedObjects)
+        {
+            if (obj != null)
+                Destroy(obj);
+        }
+
+        placedObjects.Clear();
     }
 }
