@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Fire
+  - PlacedFurniture
   layers:
   - Default
   - TransparentFX

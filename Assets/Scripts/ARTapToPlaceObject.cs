@@ -13,12 +13,20 @@ public class ARTapToPlaceObjects : MonoBehaviour
     [Header("AR Placement")]
     private GameObject previewObject;
     [SerializeField] private Material previewGhostMaterial;
+    private enum EditMode
+    {
+        None,
+        Move
+    }
+    private EditMode currentMode = EditMode.None;
+    private GameObject selectedPlacedObject;
 
     [Header("Furniture Prefabs")]
     [SerializeField] private List<GameObject> furniturePrefabs = new List<GameObject>();
 
     [Header("UI")]
     [SerializeField] private GameObject furnitureSelectionPanel;
+    [SerializeField] private GameObject editControls;
     [SerializeField] private TMP_Text selectedFurnitureButtonText;
     private GameObject selectedFurniturePrefab;
 
@@ -70,10 +78,15 @@ public class ARTapToPlaceObjects : MonoBehaviour
             touchAction.started -= PlaceSelectedFurniture;
     }
 
+    private void Start()
+    {
+        ResetFurnitureSelection();
+    }
     private void Update()
     {
         UpdatePlacementPose();
         UpdatePlacementIndicator();
+        UpdateSelectedFurnitureMovement();
     }
 
     private void UpdatePlacementPose()
@@ -112,9 +125,31 @@ public class ARTapToPlaceObjects : MonoBehaviour
         }
     }  
 
+    private void UpdateSelectedFurnitureMovement()
+    {
+        if (currentMode != EditMode.Move)
+            return;
+
+        if (selectedPlacedObject == null || !placementPoseIsValid)
+            return;
+
+        selectedPlacedObject.transform.position = placementPose.position;
+    }
+
+    private void DeselectSelectedFurniture()
+    {
+        selectedPlacedObject = null;
+        currentMode = EditMode.None;
+
+        if (editControls != null)
+            editControls.SetActive(false);
+    }
+
     // Prevent placement when interacting with UI
     private bool IsTouchOverUI()
     {
+        if (EventSystem.current == null || Touchscreen.current == null)
+            return false;
         PointerEventData eventData = new PointerEventData(EventSystem.current);
         eventData.position = Touchscreen.current.primaryTouch.position.ReadValue();
 
@@ -122,6 +157,40 @@ public class ARTapToPlaceObjects : MonoBehaviour
         EventSystem.current.RaycastAll(eventData, results);
 
         return results.Count > 0;
+    }
+
+    // Select exising furniture if it exists
+    private bool TrySelectPlacedFurniture(InputAction.CallbackContext context)
+    {
+        if (arCamera == null)
+            return false;
+
+        Vector2 touchPosition = Touchscreen.current.primaryTouch.position.ReadValue();
+
+        Ray ray = arCamera.ScreenPointToRay(touchPosition);
+
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            GameObject hitObject = hit.collider.gameObject;
+
+            if (hitObject.CompareTag("PlacedFurniture"))
+            {
+                selectedPlacedObject = hitObject;
+                if (editControls != null)
+                    editControls.SetActive(true);       
+                return true;
+            }
+
+            if (hitObject.transform.root.CompareTag("PlacedFurniture"))
+            {
+                selectedPlacedObject = hitObject.transform.root.gameObject;
+                if (editControls != null)
+                    editControls.SetActive(true);    
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Handle preview display
@@ -166,6 +235,28 @@ public class ARTapToPlaceObjects : MonoBehaviour
         if (IsTouchOverUI())
             return;
 
+        if (TrySelectPlacedFurniture(context))
+            return;
+
+        // If currently moving, tap confirms the move
+        if (currentMode == EditMode.Move)
+        {
+            ConfirmMoveSelectedFurniture();
+            return;
+        }
+        // If something is selected but user tapped empty space, just deselect
+        if (selectedPlacedObject != null)
+        {
+            DeselectSelectedFurniture();
+            return;
+        }
+
+        if (currentMode == EditMode.Move)
+        {
+            ConfirmMoveSelectedFurniture();
+            return;
+        }
+
         if (!placementPoseIsValid || selectedFurniturePrefab == null)
             return;
 
@@ -175,6 +266,7 @@ public class ARTapToPlaceObjects : MonoBehaviour
             placementPose.rotation
         );
 
+        placedObject.tag = "PlacedFurniture";
         placedObjects.Add(placedObject);
 
         ResetFurnitureSelection();
@@ -226,6 +318,9 @@ public class ARTapToPlaceObjects : MonoBehaviour
         {
             selectedFurnitureButtonText.text = "Select Furniture";
         }
+
+        if (editControls != null)
+            editControls.SetActive(false);
     }
 
     public void DeleteLastPlacedObject()
@@ -235,6 +330,15 @@ public class ARTapToPlaceObjects : MonoBehaviour
 
         GameObject lastObject = placedObjects[placedObjects.Count - 1];
         placedObjects.RemoveAt(placedObjects.Count - 1);
+
+        if (lastObject == selectedPlacedObject)
+        {
+            selectedPlacedObject = null;
+            currentMode = EditMode.None;
+
+            if (editControls != null)
+                editControls.SetActive(false);
+        }
 
         if (lastObject != null)
             Destroy(lastObject);
@@ -249,5 +353,48 @@ public class ARTapToPlaceObjects : MonoBehaviour
         }
 
         placedObjects.Clear();
+        selectedPlacedObject = null;
+        currentMode = EditMode.None;
+
+        if (editControls != null)
+            editControls.SetActive(false);
+    }
+    public void StartMoveSelectedFurniture()
+{
+    if (selectedPlacedObject == null)
+        return;
+
+    currentMode = EditMode.Move;
+}
+
+    public void RotateSelectedFurniture()
+    {
+        if (selectedPlacedObject == null)
+            return;
+
+        selectedPlacedObject.transform.Rotate(0f, 45f, 0f);
+    }
+
+    public void DeleteSelectedFurniture()
+    {
+        if (selectedPlacedObject == null)
+            return;
+
+        placedObjects.Remove(selectedPlacedObject);
+        Destroy(selectedPlacedObject);
+        DeselectSelectedFurniture();
+    }
+
+    private void ConfirmMoveSelectedFurniture()
+    {
+        if (selectedPlacedObject == null || !placementPoseIsValid)
+            return;
+
+        selectedPlacedObject.transform.SetPositionAndRotation(
+            placementPose.position,
+            selectedPlacedObject.transform.rotation
+        );
+
+        DeselectSelectedFurniture();
     }
 }
