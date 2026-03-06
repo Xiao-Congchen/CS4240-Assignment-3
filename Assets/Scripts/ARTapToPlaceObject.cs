@@ -5,6 +5,7 @@ using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.InputSystem;
 using System;
+using TMPro;
 
 public class ARTapToPlaceObjects : MonoBehaviour
 {
@@ -16,7 +17,7 @@ public class ARTapToPlaceObjects : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private GameObject furnitureSelectionPanel;
-
+    [SerializeField] private TMP_Text selectedFurnitureButtonText;
     private GameObject selectedFurniturePrefab;
 
     private Pose placementPose;
@@ -136,6 +137,9 @@ public class ARTapToPlaceObjects : MonoBehaviour
 
         selectedFurniturePrefab = furniturePrefabs[index];
         Debug.Log("Selected furniture: " + selectedFurniturePrefab.name);
+
+        if (selectedFurnitureButtonText != null)
+            selectedFurnitureButtonText.text = selectedFurniturePrefab.name;
 
         CloseFurnitureMenu();
     }
