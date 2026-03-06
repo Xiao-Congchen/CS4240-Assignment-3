@@ -142,6 +142,7 @@ public class ARTapToPlaceObjects : MonoBehaviour
 
     public void OpenFurnitureMenu()
     {
+        Debug.Log("Attempting to open menu");
         if (furnitureSelectionPanel != null)
             furnitureSelectionPanel.SetActive(true);
     }
