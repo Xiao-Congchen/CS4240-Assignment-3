@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3273937234928794510}
+  - component: {fileID: -801210035885818654}
   m_Layer: 0
   m_Name: Sofa 2 pax
   m_TagString: Untagged
@@ -32,6 +33,27 @@ Transform:
   - {fileID: 4005440587016033362}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &-801210035885818654
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6040132401821863852}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.7890625, y: 0.43700218, z: 0.8640747}
+  m_Center: {x: -0.0017089844, y: 0.2814989, z: -0.036590576}
 --- !u!1001 &4005440587015900894
 PrefabInstance:
   m_ObjectHideFlags: 0

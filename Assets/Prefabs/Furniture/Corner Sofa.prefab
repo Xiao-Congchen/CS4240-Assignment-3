@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2265697448520724772}
+  - component: {fileID: 4770789299734949081}
+  - component: {fileID: 3559564991275365362}
   m_Layer: 0
   m_Name: Corner Sofa
   m_TagString: Untagged
@@ -32,6 +34,48 @@ Transform:
   - {fileID: 1028656038916211305}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &4770789299734949081
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1699272612446188572}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.3444824, y: 0.514397, z: 0.725647}
+  m_Center: {x: -0.01171875, y: 0.34940243, z: 0.4838562}
+--- !u!65 &3559564991275365362
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1699272612446188572}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.7515869, y: 0.38158643, z: 1.6751709}
+  m_Center: {x: 0.87579346, y: 0.30920678, z: 0.03277588}
 --- !u!1001 &1028656038916610301
 PrefabInstance:
   m_ObjectHideFlags: 0
