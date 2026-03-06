@@ -11,7 +11,7 @@ using TMPro;
 public class ARTapToPlaceObjects : MonoBehaviour
 {
     [Header("AR Placement")]
-    [SerializeField] private GameObject placementIndicator;
+    private GameObject previewObject;
 
     [Header("Furniture Prefabs")]
     [SerializeField] private List<GameObject> furniturePrefabs = new List<GameObject>();
@@ -43,9 +43,6 @@ public class ARTapToPlaceObjects : MonoBehaviour
         {
             touchAction = playerInput.actions.FindAction("SingleTouchClick");
         }
-
-        if (placementIndicator == null)
-            Debug.LogError("Placement indicator is not assigned.");
 
         if (arRaycastManager == null)
             Debug.LogError("ARRaycastManager not found in scene.");
@@ -99,20 +96,20 @@ public class ARTapToPlaceObjects : MonoBehaviour
 
     private void UpdatePlacementIndicator()
     {
-        if (placementIndicator == null)
+        if (previewObject == null)
             return;
 
         bool shouldShow = placementPoseIsValid && selectedFurniturePrefab != null;
-        placementIndicator.SetActive(shouldShow);
+        previewObject.SetActive(shouldShow);
 
         if (shouldShow)
         {
-            placementIndicator.transform.SetPositionAndRotation(
+            previewObject.transform.SetPositionAndRotation(
                 placementPose.position,
                 placementPose.rotation
             );
         }
-    }
+    }  
 
     // Prevent placement when interacting with UI
     private bool IsTouchOverUI()
@@ -125,7 +122,29 @@ public class ARTapToPlaceObjects : MonoBehaviour
 
         return results.Count > 0;
     }
-    
+
+    // Handle preview display
+    private void CreatePreviewObject()
+    {
+        if (previewObject != null)
+        {
+            Destroy(previewObject);
+        }
+
+        if (selectedFurniturePrefab == null)
+            return;
+
+        previewObject = Instantiate(selectedFurniturePrefab);
+        previewObject.name = selectedFurniturePrefab.name + "_Preview";
+
+        // Disable colliders so the preview doesn't interfere with raycasts
+        Collider[] colliders = previewObject.GetComponentsInChildren<Collider>();
+        foreach (Collider col in colliders)
+        {
+            col.enabled = false;
+        }
+    }
+
     private void PlaceSelectedFurniture(InputAction.CallbackContext context)
     {
         if (IsTouchOverUI())
@@ -153,6 +172,8 @@ public class ARTapToPlaceObjects : MonoBehaviour
 
         selectedFurniturePrefab = furniturePrefabs[index];
         Debug.Log("Selected furniture: " + selectedFurniturePrefab.name);
+
+        CreatePreviewObject();
 
         if (selectedFurnitureButtonText != null)
             selectedFurnitureButtonText.text = selectedFurniturePrefab.name;
