@@ -838,7 +838,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ARTapToPlaceObject
   placementIndicator: {fileID: 1615324219}
-  objectToPlace: {fileID: 2020258965413758991, guid: 2a1a30d25c8562d4a88ebdf6a1396b6c, type: 3}
+  furniturePrefabs:
+  - {fileID: 1333083109357115269, guid: debb00c89dfcdce49a68502783cf1098, type: 3}
+  - {fileID: 4923199711124111973, guid: e84f70483cacb29468cdc1f2242707e8, type: 3}
+  - {fileID: 3743464824527507010, guid: 752ceda8b3154ed42a90562556b8b7d0, type: 3}
+  - {fileID: 6348341409822899169, guid: ee6b9e2358e14814c965836688ccfcc7, type: 3}
 --- !u!4 &1375737370
 Transform:
   m_ObjectHideFlags: 0
